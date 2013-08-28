@@ -487,6 +487,108 @@ For the Rdio API test, beta access to their new API is necessary.
 The site for the beta API is: "http://www.rdio.com/developers/"
 
 
+---
+
+
+### Example #5 - Google API config that uses Authorization Code OAuth 2
+
+```js
+"google": {
+    "name": "Google Calendar API (OAuth 2.0 Auth Code)",
+    "protocol": "https",
+    "baseURL": "www.googleapis.com",
+    "publicPath": "/calendar/v3",
+    "privatePath": "/calendar/v3",
+    "headers" : {},
+    "booleanTrueVal": "true",
+    "booleanFalseVal": "false",
+    "auth": "oauth2",
+    "oauth2": {
+        "type": "authorization-code",
+        "baseSite": "https://accounts.google.com/",
+        "authorizeURL": "o/oauth2/auth",
+        "accessTokenURL": "o/oauth2/token",
+        "customHeaders": {},
+        "tokenName": "access_token",
+        "extraParameters": {"scope": "https://www.googleapis.com/auth/calendar.readonly", "response_type": "code" }
+    },
+    "keyParam": ""
+},
+```
+
+Line:
+
+1. Handle of the API. It is used to pull up the client
+    interface in the URL:
+
+    Ex: http://localhost:3000/google
+
+2. "name" key value is a string that holds the name
+    of the API that is used in the Jade template output.
+
+3. "protocol" key value contains either *http* or *https*,
+    but you're welcome to try other protocols.
+
+4. "baseURL" key value is the base URL that accepts
+    the API calls (should not include protocol)
+
+5. "publicPath" key value is the path prefix prepended
+    to all method URIs for non-protected method resources.
+    This value often includes the version in RESTful APIs.
+
+    Ex: "/v1", "/1", etc.
+
+6. "privatePath" key value is the path prefix prepended
+    to all method URIs for OAuth2 protected method resources.
+    This value is most often the version in RESTful APIs.
+
+    Ex: "/v1", "/1", etc.
+
+8. The value to be sent for boolean "True"
+
+9. The value to be sent for boolean "False"
+
+10. "auth" key value is set to "oauth2" when OAuth2 is the
+    authentication mechanism. Field is required.
+
+11. "oauth" key value is a JSON object that contains the
+    OAuth implementation details for this API. Field is
+    required when "auth" value is "oauth".
+
+12. "type" key value is the OAuth 2 authorization flow
+    used for this API. Valid values are "authorization-code", 
+    "client_credentials", and "implicit", named for each grant
+    found here: "http://tools.ietf.org/html/rfc6749". 
+
+13. "baseSite" key value is the base website URL used in
+    the OAuth 2 dance. It is required.
+
+14. "authorizeURL" key value is the url string used to 
+    retrieve the authorization token in the 
+    "authorization-code" OAuth 2 flow. This is not necessary 
+    in any other OAuth 2 flow.
+
+15. "accessTokenURL" key value is the url string used to 
+    retrieve the access (Bearer) token in any OAuth 2 flow.
+    This is required in all OAuth 2 flows. 
+
+17. "tokenName" key value if the API does not use "access_token"
+    as the default token name when making calls with the 
+    access token in the url query parameters. Not required if 
+    "access_token" is used. 
+
+18. "extraParameters" lists any parameters that must be included
+    in the Authorization URL. For instance, Google needs to see
+    a "scope" parameter in the authorization URL. 
+    Only required if this is the case.
+
+19. Closing curly bracket for "oauth2" JSON object. 
+
+20. "keyParam" key value is blank when OAuth 2 is the authentication
+    method.
+
+21. Closing curly bracket for main object.
+
 
 API-LEVEL CONFIG DETAILS
 ========================

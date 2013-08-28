@@ -1,4 +1,26 @@
 {
+    "google": {
+        "name": "Google Calendar API (OAuth 2.0 Auth Code)",
+        "protocol": "https",
+        "baseURL": "www.googleapis.com",
+        "publicPath": "/calendar/v3",
+        "privatePath": "/calendar/v3",
+        "headers" : {},
+        "booleanTrueVal": "true",
+        "booleanFalseVal": "false",
+        "auth": "oauth2",
+        "oauth2": {
+            "type": "authorization-code",
+            "baseSite": "https://accounts.google.com/",
+            "authorizeURL": "o/oauth2/auth",
+            "accessTokenURL": "o/oauth2/token",
+            "customHeaders": {},
+            "tokenName": "access_token",
+            "extraParameters": {"scope": "https://www.googleapis.com/auth/calendar.readonly", "response_type": "code" }
+        },
+        "keyParam": ""
+    },
+
     "klout": {
         "name": "Klout v2 API",
         "protocol": "http",

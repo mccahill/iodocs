@@ -1,0 +1,57 @@
+{
+   "endpoints":[
+      {
+         "name":"Google Calendar",
+         "methods":[
+            {
+               "MethodName":"CalendarList: list",
+               "Synopsis":"Returns entries on the user's calendar list",
+               "HTTPMethod":"GET",
+               "URI":"/users/me/calendarList",
+               "RequiresOAuth":"Y",
+               "parameters":[
+                  {
+                     "Name":"maxResults",
+                     "Required":"N",
+                     "Default":"",
+                     "Type":"int",
+                     "Description":"the maximum number of activity items to be returned"
+                  },
+                  {
+                     "Name":"minAccessRole",
+                     "Required":"N",
+                     "Default":"",
+                     "Type":"enumerated",
+                     "EnumeratedList": [
+                        "freeBusyReader",
+                        "owner",
+                        "reader",
+                        "writer"
+                      ],
+                      "EnumeratedDescription": {
+                         "freeBusyReader": "The user can read free/busy information.",
+                         "owner": "The user can read and modify events and access control lists",
+                         "reader": "The user can read events that are not private",
+                         "writer": "The user can read and modify events"
+                   },
+                     "Description":"The minimum access role for the user in the returned entires. Optional. The default is no restriction."
+                  },
+                  {
+                     "Name":"pageToken",
+                     "Required":"N",
+                     "Default":"",
+                     "Type":"string",
+                     "Description":"Token specifying which result page to return"
+                  },
+                  {
+                     "Name":"showHidden",
+                     "Required":"N",
+                     "Type":"boolean",
+                     "Description":"Whether to show hidden entries. default's to False"
+                  }
+               ]
+            }
+         ]
+      }
+   ]
+}

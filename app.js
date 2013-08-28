@@ -132,7 +132,9 @@ app.configure('production', function() {
 // Middleware
 //
 function oauth(req, res, next) {
-    console.log('OAuth process started');
+    if (config.debug) {
+        console.log('OAuth process started');
+    };
     var apiName = req.body.apiName,
         apiConfig = apisConfig[apiName];
 
@@ -201,7 +203,9 @@ function oauth(req, res, next) {
 }
 
 function oauth2(req, res, next){
-    console.log('OAuth2 process started');
+    if (config.debug) {
+        console.log('OAuth2 process started');
+    };
     var apiName = req.body.apiName,
         apiConfig = apisConfig[apiName],
         urlp = url.parse(req.originalUrl, true);
@@ -216,7 +220,8 @@ function oauth2(req, res, next){
                            apiSecret,
                            apiConfig.oauth2.baseSite,
                            apiConfig.oauth2.authorizeURL,
-                           apiConfig.oauth2.accessTokenURL);
+                           apiConfig.oauth2.accessTokenURL,  
+                           apiConfig.oauth2.customHeaders );
 
         if (apiConfig.oauth2.tokenName) {
             oa.setAccessTokenName(apiConfig.oauth2.tokenName);
@@ -231,8 +236,15 @@ function oauth2(req, res, next){
         };
 
         if (apiConfig.oauth2.type == 'authorization-code') {
-            var redirectUrl = oa.getAuthorizeUrl({redirect_uri : callbackURL, response_type : 'code'});
+            var oauth2Params = {redirect_uri : callbackURL, response_type : 'code'};
+            for( var itemKey in apiConfig.oauth2.extraParameters ) {
+              oauth2Params[itemKey]= apiConfig.oauth2.extraParameters[itemKey];
+            };
 
+            var redirectUrl = oa.getAuthorizeUrl( oauth2Params );
+            if (config.debug) {
+                console.log('OAuth redirectUrl: ' + redirectUrl);
+            };
             db.set(key + ':apiKey', apiKey, redis.print);
             db.set(key + ':apiSecret', apiSecret, redis.print);
             db.set(key + ':baseURL', req.headers.referer, redis.print);
@@ -264,7 +276,7 @@ function oauth2(req, res, next){
             var accessURL = apiConfig.oauth2.baseSite + apiConfig.oauth2.accessTokenURL;
             var basic_cred = apiKey + ':' + apiSecret;
             var encoded_basic = new Buffer(basic_cred).toString('base64')
- 
+
             http_method = (apiConfig.oauth2.authorizationHeader == 'Y') ? "POST" : "GET";
             header = (apiConfig.oauth2.authorizationHeader == 'Y') ? {'Authorization' : 'Basic ' + encoded_basic} : '';
             fillerpost = query.stringify({grant_type : "client_credentials", client_id : apiKey, client_secret : apiSecret});
@@ -317,7 +329,9 @@ function oauth2(req, res, next){
 
 
 function oauth2Success(req, res, next) {
-    console.log('oauth2Success started');
+    if (config.debug) {
+        console.log('oauth2Success started');
+    };
         var apiKey,
             apiSecret,
             apiName = req.params.api,
@@ -371,8 +385,15 @@ function oauth2Success(req, res, next) {
             };
 
             if (apiConfig.oauth2.type == 'authorization-code') {
+                if (config.debug) {
+                  console.log('inside authorization-code');
+                  console.log('redirect_uri : '+ callbackURL);
+                  console.log('client_id : '+ apiKey);
+                  console.log('client_secret : ' + apiSecret);
+                };
+                
                 oa.getOAuthAccessToken(req.query.code,
-                    {grant_type : "authorization_code", redirect_uri : baseURL, client_id : apiKey, client_secret : apiSecret},
+                    {grant_type : "authorization_code", redirect_uri : callbackURL, client_id : apiKey, client_secret : apiSecret},
                     function(error, oauth2access_token, oauth2refresh_token, results){
                     if (error) {
                         res.send("Error getting OAuth access token : " + util.inspect(error) + "["+oauth2access_token+"]"+ "["+oauth2refresh_token+"]", 500);
@@ -548,13 +569,22 @@ function processRequest(req, res, next) {
             path: apiConfig.publicPath + methodURL// + ((paramString.length > 0) ? '?' + paramString : "")
         };
 
+    if (config.debug) {
+        console.log('just built privateReqURL');
+        console.log('apiConfig.baseURL: ' + apiConfig.baseURL);
+        console.log('apiConfig.privatePath: ' + apiConfig.privatePath);
+        console.log('methodURL: ' + methodURL);
+        console.log('paramString: ' + paramString);
+    };
+
     if (['POST','DELETE','PUT'].indexOf(httpMethod) !== -1) {
         var requestBody = query.stringify(params);
     }
 
     if (apiConfig.oauth) {
-        console.log('Using OAuth');
-
+        if (config.debug) {
+            console.log('Using OAuth');
+        };
         // Three legged OAuth
         if (apiConfig.oauth.type == 'three-legged' && (reqQuery.oauth == 'authrequired' || (req.session[apiName] && req.session[apiName].authed))) {
             if (config.debug) {
@@ -687,8 +717,9 @@ function processRequest(req, res, next) {
             unsecuredCall();
         }
     } else if (apiConfig.oauth2) {
-        console.log('Using OAuth2');
-
+        if (config.debug) {
+            console.log('Using OAuth2');
+        };
         if (implicitAccessToken) {
             db.mset([key + ':access_token', implicitAccessToken
                     ], function(err, results2) {
@@ -735,6 +766,15 @@ function processRequest(req, res, next) {
                     if (apiConfig.oauth2.authorizationHeader && (apiConfig.oauth2.authorizationHeader == 'Y')) {
                         var headers = {Authorization : "Bearer " + access_token};
                     }
+
+                    if (config.debug) {
+                        console.log('now calling oa._request with');
+                        console.log('Access token: ' + access_token);
+                        console.log('httpMethod: ' + httpMethod);
+                        console.log('privateReqURL: ' + privateReqURL);
+                        console.log('headers: ' + headers);
+                        console.log('requestBody: ' +  requestBody );
+                    };
 
                     oa._request(httpMethod, privateReqURL, headers, requestBody, access_token, function (error, data, response) {
                         req.call = privateReqURL;
